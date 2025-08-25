@@ -17,7 +17,7 @@ open_debit_card_account_payload = {
     "userId": create_user_response_data["user"]["id"]
 }
 open_debit_card_account_response = httpx.post(
-    "http://localhost:8003/api/v1/accounts/open-credit-card-account",
+    "http://localhost:8003/api/v1/accounts/open-debit-card-account",
     json=open_debit_card_account_payload
 )
 open_debit_card_account_response_data = open_debit_card_account_response.json()
