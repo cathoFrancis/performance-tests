@@ -1,5 +1,11 @@
 from httpx import Client, URL, Response, QueryParams
-from typing import Any
+from typing import Any, TypedDict
+
+
+# Тип расширений, которые можно передать в запрос
+# В нашем случае мы используем только параметр "route", но можно добавить и другие
+class HTTPClientExtensions(TypedDict, total=False):
+    route: str
 
 class HTTPClient:
     """
@@ -10,7 +16,13 @@ class HTTPClient:
     def __init__(self, client: Client):
         self.client = client
 
-    def get(self, url: URL | str, params: QueryParams | None = None) -> Response:
+    def get(
+            self,
+            url: URL | str,
+            params: QueryParams | None = None,
+            # Добавили поддержку extensions
+            extension: HTTPClientExtensions | None = None
+        ) -> Response:
         """
         Выполняет GET-запрос.
 
@@ -18,9 +30,16 @@ class HTTPClient:
         :param params: GET-параметры запроса (например, ?key=value).
         :return: Объект Response с данными ответа.
         """
-        return self.client.get(url, params=params)
+        # Передаём extensions в httpx.Client
+        return self.client.get(url, params=params, extensions=extension)
 
-    def post(self, url: URL | str, json: Any | None = None) -> Response:
+    def post(
+            self,
+            url: URL | str,
+            json: Any | None = None,
+            # Поддержка extensions для POST-запросов
+            extension: HTTPClientExtensions | None = None
+    ) -> Response:
         """
        Выполняет POST-запрос.
 
@@ -28,4 +47,5 @@ class HTTPClient:
        :param json: Данные в формате JSON.
        :return: Объект Response с данными ответа.
        """
-        return self.client.post(url, json=json)
+        # extensions передаётся в httpx.Client
+        return self.client.post(url, json=json, extensions=extension)

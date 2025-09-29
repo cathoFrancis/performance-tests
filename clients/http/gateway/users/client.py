@@ -1,9 +1,14 @@
 import time
 
 from httpx import Response
+from locust.env import Environment  # Импорт окружения Locust
 
-from clients.http.client import HTTPClient
-from clients.http.gateway.client import build_gateway_http_client
+from clients.http.client import HTTPClient, HTTPClientExtensions # Импортируем тип extensions
+from clients.http.gateway.client import (
+    build_gateway_http_client,
+    # Импорт билдера для нагрузочного тестирования
+    build_gateway_locust_http_client
+)
 from clients.http.gateway.users.schema import (  # Добавили импорт моделей
     GetUserResponseSchema,
     CreateUserRequestSchema,
@@ -25,7 +30,11 @@ class UsersGatewayHTTPClient(HTTPClient):
         :param user_id: Идентификатор пользователя.
         :return: Ответ от сервера (объект httpx.Response).
         """
-        return self.get(f"/api/v1/users/{user_id}")
+        return self.get(
+            f"/api/v1/users/{user_id}",
+            # Явно передаём логическое имя маршрута
+            extension=HTTPClientExtensions(route="/api/v1/users/{user_id}")
+        )
 
     # Теперь используем pydantic-модель для аннотации
     def create_user_api(self, request: CreateUserRequestSchema) -> Response:
@@ -64,3 +73,17 @@ def build_users_gateway_http_client() -> UsersGatewayHTTPClient:
     :return: Готовый к использованию UsersGatewayHTTPClient.
     """
     return UsersGatewayHTTPClient(client=build_gateway_http_client())
+
+
+# Новый билдер для нагрузочного тестирования
+def build_users_gateway_locust_http_client(environment: Environment) -> UsersGatewayHTTPClient:
+    """
+    Функция создаёт экземпляр UsersGatewayHTTPClient адаптированного под Locust.
+
+    Клиент автоматически собирает метрики и передаёт их в Locust через хуки.
+    Используется исключительно в нагрузочных тестах.
+
+    :param environment: объект окружения Locust.
+    :return: экземпляр UsersGatewayHTTPClient с хуками сбора метрик.
+    """
+    return UsersGatewayHTTPClient(client=build_gateway_locust_http_client(environment))
